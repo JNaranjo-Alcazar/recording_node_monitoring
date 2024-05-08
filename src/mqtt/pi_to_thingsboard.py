@@ -14,26 +14,17 @@ from pijuice import __version__ as library_version
 from json import dumps 
 from datetime import datetime
 
-from basic_utilities.src.basicutils.logging.logging_util import create_logger
+
+ #environment variables to configure at raspberrypi
 
 THINGSBOARD_HOST = os.environ.get("THINGSBOARD_HOST")
 PORT = os.environ.get("PORT")
 ACCESS_TOKEN = os.environ.get("TOKEN")
-FOLDERPATH = os.environ.get("FOLDERPATH") #to configure at raspberrypi
+FOLDERPATH = os.environ.get("FOLDERPATH")
 
 LOGSPATH = os.environ.get("LOGSPATH") #logs
 PWD = os.environ.get("PWD") #path
 BUCKET = os.environ.get("NODO") # nodo
-
-def configure_log():
-
-    if os.path.isdir("./logs") is False:
-        os.mkdir("./logs")
-        
-    logger = create_logger(logger_name="my_logger", level="DEBUG", both_handler=True, output_dir="./logs")
-    
-    return logger
-
 
 INTERVAL=300
 
@@ -42,28 +33,6 @@ pijuice = PiJuice(1, 0x14)  # Instantiate PiJuice interface object
 # Data capture and upload interval in seconds. Less interval will eventually hang the DHT22.
 
 next_reading = time.time() 
-
-
-def obtain_audio_energy(file, folder_access):
-    
-    if folder_access is True:
-        wav_data, sr = sf.read(file, dtype=np.int32)
-        
-        # insert if to secure int32
-        if (wav_data.dtype == np.int16):
-            waveform = wav_data / 32768.0  # Convert to [-1.0, +1.0]
-            waveform = waveform.astype('float32')
-        
-        if (wav_data.dtype == np.int32):
-            waveform = wav_data / 2147483648.0  # Convert to [-1.0, +1.0]
-            waveform = waveform.astype('float32')
-
-        energy = sum([abs(i)**2 for i in waveform]) / len(waveform)
-
-        return energy
-    else:
-        energy = None
-        return energy
 
 def last_file_recorded(path, ext_file):
     
@@ -104,7 +73,6 @@ def get_pijuice_data(path):
     else:
         last_file = None
     
-    energy = obtain_audio_energy(latest_file, folder_access)
              
     pijuice_status = {
     "date":fecha,
@@ -118,7 +86,6 @@ def get_pijuice_data(path):
     "ioVoltage": pijuice.status.GetIoVoltage()["data"] / 1000,
     "ioCurrent": pijuice.status.GetIoCurrent()["data"] / 1000,
     "FolderSize": FolderSize / (1024 * 1024 * 1024),
-    "energyWave": energy,
     "LastFile": last_file,
     "Message": message,
     }
@@ -182,7 +149,6 @@ def publish_data(host, port, token, data):
         print(f"ioVoltage = {data['ioVoltage']}\n")
         print(f"ioCurrent = {data['ioCurrent']}\n")
         print(f"FolderSize = {data['FolderSize']}\n")
-        print(f"energyWave = {data['energyWave']}\n")
         print(f"LastFile = {data['LastFile']}\n")
         print(f"-----------------------------\n")
 
@@ -194,33 +160,22 @@ def publish_data(host, port, token, data):
     except LookupError:
         print(f"Cannot connect due to:", LookupError, "\n")   
         
-def send_log_file():
-    
-    os.system(f"minio-mc-nsg ls sorollia/{BUCKET}")
-        
-    last_log, folder_access, message = last_file_recorded(LOGSPATH,"*.txt")
-    
-    os.system(f"minio-mc-nsg cp {last_log} sorollia/{BUCKET}")
-
-    os.system(f"minio-mc-nsg ls sorollia/{BUCKET}")
     
 if __name__ == '__main__':
    
-    # logger = configure_log()
     
     print(f"Interval time set to {INTERVAL} seconds\n")
     
-    print(f"Starting VPN to ITI\n")
+    print(f"Starting VPN \n")
     
     try:
-        
-        os.system('sudo wg-quick up /home/wg-iti-rpi.conf')
+        # vpn file to configure vpn if wanted
+        os.system('sudo wg-quick up /vpn-rpi.conf')
         print(f"VPN connection was successful\n")
     
     except KeyError:
         print(f"Cannot connect via VPN\n")
         
-    send_log_file()
     
     try:
         while True:

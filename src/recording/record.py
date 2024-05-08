@@ -4,15 +4,15 @@ import threading
 import time
 from queue import Queue
 
-# Configuración de grabación
+# Recording configuration
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
 CHUNK = 1024
-DURATION = 10  # Duración de cada segmento de grabación
-DEVICE_INDEX = 1 # check this
+DURATION = 10  # Time event duration
+DEVICE_INDEX = 1 # check this to know what index have the recording device on the RPI, can be check with other script
 
-# Bandera para indicar si se está grabando
+# Flag to know if its recording
 recording = False
 
 def record_segment(q):
@@ -45,7 +45,7 @@ def save_segment(q):
 
     while True:
         filename, frames = q.get()
-        # print(f"Guardando segmento {segment_number}...")
+        # print(f"Saving segment {segment_number}...")
         # timestamp = int(time.time())
         # filename = f"/wavs/snd_{formatted_datetime}.wav"
         wf = wave.open(f'{filename}.wav', 'wb')
@@ -55,7 +55,7 @@ def save_segment(q):
         wf.writeframes(b''.join(frames))
         wf.close()
 
-        # print(f"Segmento {segment_number} guardado.")
+        # print(f"Segment {segment_number} saved.")
         # segment_number += 1
 
 def start_recording():
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     start_time = time.time()
     
     start_recording()
-    input("Presiona Enter para detener la grabación...")
+    input("Press Enter to stop recording...")
     
     end_time = time.time()
     elapsed_time = end_time - start_time
@@ -86,6 +86,6 @@ if __name__ == "__main__":
     minutes = int((elapsed_time % 3600) // 60)
     seconds = int(elapsed_time % 60)
     
-    print("Tiempo transcurrido: {} h, {} m, {} s".format(hours, minutes, seconds))
+    print("Time recorded: {} h, {} m, {} s".format(hours, minutes, seconds))
     
     stop_recording()
