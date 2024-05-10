@@ -1,0 +1,7 @@
+THINGSBOARD_HOST=ip-to-thingsboard
+PORT=port-to-thingsboard
+FOLDERPATH=/wavs/
+LOGSPATH=/home/user/logs/
+REPO_PATH=repos/recording_node_monitoring/
+TOKEN=AccessTokenThingsBoard
+MAX_GB=850
