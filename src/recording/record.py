@@ -24,7 +24,7 @@ def record_segment(q):
                         input_device_index=DEVICE_INDEX)
 
     frames = []
-    print("Iniciando grabación...")
+    print("Starting recording...")
 
     while recording:
         data = stream.read(CHUNK, exception_on_overflow = False)
